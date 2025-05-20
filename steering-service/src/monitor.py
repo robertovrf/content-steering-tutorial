@@ -74,6 +74,8 @@ class ContainerMonitor:
 # END CLASS.
 
 
+monitor = ContainerMonitor()
+
 # MAIN
 if __name__ == '__main__':
 
