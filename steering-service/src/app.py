@@ -40,27 +40,22 @@ class Main:
 
             print("\033[92mRequest received:", request.url, "\033[0m")
 
-            nodes = monitor.getNodes('ip_address')
-            net = None # network.get_current_conditions()
-
-            session = selector.solver(**{
+            _, nos = selector.solver(**{
                 'uid': uid,
                 'adr': adr,
                 'tar': tar,
                 'thr': thr,
-                'net': net,
-
             })
 
             data = dash_parser.build(
-                target  = tar,
-                nodes   = nodes,
-                uri     = BASE_URI,
-                request = request
+                tar = tar,
+                nos = [nos],
+                uri = BASE_URI,
+                req = request
             )
-
-            # Add session uid to the RELOAD-URI if present
             data['RELOAD-URI'] = f"{data['RELOAD-URI']}?_DASH_uid={uid}"
+
+            print("\033[93mResponse data:", data, "\033[0m")
 
             return jsonify(data), 200
 

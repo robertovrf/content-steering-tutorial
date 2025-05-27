@@ -3,33 +3,28 @@ class DashParser:
         pass
 
 
-    def build(self, target, nodes, uri, request):
-        message = {}
-        message['VERSION'] = 1
-        message['TTL'] = 10
-        message['RELOAD-URI'] = f'{uri}{request.path}'
+    def build(self, tar, nos, uri, req):
+        message = {
+            'VERSION': 1,
+            'TTL': 10,
+            'RELOAD-URI': f'{uri}{req.path}',
+            'PATHWAY-PRIORITY': nos + ['cloud'],
+            'PATHWAY-CLONES': []
+        }
 
-        message["PATHWAY-PRIORITY"] = [f'{node[0]}' for node in nodes] + ['cloud']
-
-        if nodes:
-            message['PATHWAY-CLONES'] = self.pathway_clones(nodes)
+        if nos:
+            message['PATHWAY-CLONES'] = self.pathway_clones(nos)
         
         return message
 
 
-    def pathway_clones(self, nodes):
-        
-        clones = []
-        
-        for node in nodes:
-            clone = {
+    def pathway_clones(self, nos):        
+        return [
+            {
                 'BASE-ID': f'cloud',
-                'ID': f'{node[0]}',
+                'ID': no,
                 'URI-REPLACEMENT': {
-                    'HOST': f'https://{node[0]}'
+                    'HOST': f'https://{no}'
                 }
-            }
-    
-            clones.append(clone)
-            
-        return clones
+            } for no in nos
+        ]

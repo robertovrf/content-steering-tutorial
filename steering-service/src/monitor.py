@@ -56,6 +56,11 @@ class ContainerMonitor:
 
     def getNodes(self, metric='tx_bytes'):
         return [(name, stat[-1]['ip_address']) for name, stat in self.container_stats.items()]
+    
+    def get_nodes(self, metric='tx_bytes'):
+        return [
+            (name, stat[-1]['ip_address']) for name, stat in self.container_stats.items()
+        ]
 
     def print_stats(self):
         for name, stats_list in self.container_stats.items():

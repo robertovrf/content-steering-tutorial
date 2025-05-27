@@ -147,8 +147,8 @@ class AIServerSelector:
                 memory_usage = 0
             
             metrics.append({
-                'server_name': server_name,
-                'cpu_usage': cpu_usage,
+                'server_name':  server_name,
+                'cpu_usage':    cpu_usage,
                 'memory_usage': memory_usage
             })
         return metrics
@@ -224,3 +224,6 @@ class AIServerSelector:
                 "samples_collected": len(self.data_buffer),
                 "updates_performed": self.sample_count // self.update_threshold
             }
+        
+
+ai_selector = AIServerSelector(max_samples=1000, update_threshould=100)
