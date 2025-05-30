@@ -35,8 +35,8 @@ class Selector:
         print(f"Session: {session}")
 
         nos = ai_selector.predict_best_server(
-            network.get_current_conditions(),
-            monitor.get_nodes('ip_address'),
+            network.get_conditions(),
+            monitor.get_nodes(),
         )
 
         self.sessions[uid] = session

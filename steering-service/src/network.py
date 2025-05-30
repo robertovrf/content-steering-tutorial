@@ -28,7 +28,7 @@ class NetworkControl:
         self.packet_loss = 0
 
 
-    def get_current_conditions(self):
+    def get_conditions(self):
         with self.lock:
             return {
                 'latency': 100,     # in milliseconds

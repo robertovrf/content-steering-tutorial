@@ -87,10 +87,12 @@ class AIServerSelector:
         if not available_servers:
             print("Nenhum servidor disponível para seleção.")
             return None
-        
+
         server_metrics = self.get_server_metrics(available_servers)
         qoe_predictions = []
 
+        print(f"Network conditions: {network_conditions}")
+        print(f"Metrics of available servers: {server_metrics}")
         for metrics in server_metrics:
             features = [
                 network_conditions['latency'],
@@ -110,7 +112,11 @@ class AIServerSelector:
 
             with self.lock:
                 try:
-                    qoe = self.model.predict(input_data_scsaled)[0]
+                    if self.model is not None:
+                        qoe = self.model.predict(input_data_scsaled)[0]
+                    else:
+                        print("Modelo não está carregado ou treinado.")
+                        qoe = 0
                 except Exception as e:
                     print(f"Erro ao prever QoE: {e}")
                     qoe = 0
@@ -135,13 +141,15 @@ class AIServerSelector:
         for server in available_servers:
             server_name = server[0]
             try:
+                print(f"Getting metrics from {server_name}")
+                
                 cpu_usage    = monitor.get_cpu_usage(server_name)
                 memory_usage = monitor.get_memory_usage(server_name)
 
             except AttributeError:
                 print(
-                    f"Não foi possível obter métricas para {server_name}. " 
-                    f"Usando valores padrão."
+                    f"Could not get metrics for {server_name}. "
+                    f"Using default values."
                 )
                 cpu_usage = 0
                 memory_usage = 0

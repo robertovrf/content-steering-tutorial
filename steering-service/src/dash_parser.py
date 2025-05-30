@@ -28,3 +28,5 @@ class DashParser:
                 }
             } for no in nos
         ]
+    
+parser = DashParser()

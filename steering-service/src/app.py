@@ -1,26 +1,24 @@
+import os
+import randomname
+import threading
+
 from flask import Flask
 from flask import request
 from flask import jsonify
 from flask_cors import CORS, cross_origin
-import randomname
 
-from dash_parser import DashParser
+from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
+
 from monitor import monitor
 from network import network
 from selector import selector
-from ai_server_selector import AIServerSelector
-from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
+from dash_parser import parser
+
 
 # DEFINES
 STEERING_ADDR = 'steering-service'
 STEERING_PORT = 30500
 BASE_URI      = f'https://{STEERING_ADDR}:{STEERING_PORT}'
-
-
-# Create instances of the parsers and the container monitor
-dash_parser  = DashParser()
-
-# selector = AIServerSelector()
 
 
 class Main:
@@ -47,7 +45,7 @@ class Main:
                 'thr': thr,
             })
 
-            data = dash_parser.build(
+            data = parser.build(
                 tar = tar,
                 nos = [nos],
                 uri = BASE_URI,
@@ -61,17 +59,23 @@ class Main:
 
 
     def run(self):
-        ssl_context = ('steering-service/certs/steering-service.pem', 'steering-service/certs/steering-service-key.pem')
-        self.app.run(host=STEERING_ADDR, port=STEERING_PORT, debug=True, ssl_context=ssl_context)
-
+        ssl_context = (
+            'steering-service/certs/steering-service.pem', 
+            'steering-service/certs/steering-service-key.pem'
+        )
+        self.app.run(
+            host=STEERING_ADDR, 
+            port=STEERING_PORT, 
+            ssl_context=ssl_context,
+            use_reloader=False,
+            debug=True
+        )
 # END CLASS.
 
+main = Main()
 
 # MAIN
 if __name__ == '__main__':
-
     monitor.start_collecting()
-
-    main = Main()
     main.run()
 # EOF
