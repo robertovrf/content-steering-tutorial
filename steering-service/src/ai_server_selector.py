@@ -20,7 +20,7 @@ class AIServerSelector:
         self.update_threshould = update_threshould
         self.model             = None
         self.sample_count      = 0
-        self.server_mapping    = {}
+        self.sv_mapping    = {}
         self.load_or_train_model()
 
         self.lock = threading.Lock()
@@ -30,7 +30,7 @@ class AIServerSelector:
         try:
             self.model  = joblib.load('server_selection_model.joblib')
             self.scaler = joblib.load('server_selection_scaler.joblib')
-            self.server_mapping = joblib.load('server_selection_mapping.joblib')
+            self.sv_mapping = joblib.load('server_selection_mapping.joblib')
 
             print("Model loaded successfully.")
 
@@ -63,12 +63,12 @@ class AIServerSelector:
 
             # Train the model with the scaled data
             self.model.fit(scaled_data, dummy_targets)
-            self.server_mapping = {}
+            self.sv_mapping = {}
 
             # Save the trained model, scaler, and mapping
             joblib.dump(self.model, 'server_selection_model.joblib')
             joblib.dump(self.scaler, 'server_selection_scaler.joblib')
-            joblib.dump(self.server_mapping, 'server_selection_mapping.joblib')
+            joblib.dump(self.sv_mapping, 'server_selection_mapping.joblib')
 
             print("Model not found. Training a new model.")
 
@@ -105,7 +105,7 @@ class AIServerSelector:
             input_data = np.array([features])
 
             try:
-                input_data_scsaled = self.scaler.transform(input_data)
+                input_data_scaled = self.scaler.transform(input_data)
             except Exception as e:
                 print(f"Erro ao escalar os dados de entrada: {e}")
                 continue
@@ -113,49 +113,49 @@ class AIServerSelector:
             with self.lock:
                 try:
                     if self.model is not None:
-                        qoe = self.model.predict(input_data_scsaled)[0]
+                        qoe = self.model.predict(input_data_scaled)[0]
                     else:
-                        print("Modelo não está carregado ou treinado.")
+                        print("Model is not loaded or trained.")
                         qoe = 0
                 except Exception as e:
-                    print(f"Erro ao prever QoE: {e}")
+                    print(f"Error predicting QoE: {e}")
                     qoe = 0
 
             qoe_predictions.append((qoe, metrics['server_name']))
 
             if not qoe_predictions:
-                print("Nenhum QoE previsto.")
+                print("No QoE predicted.")
                 return None
             
         best_server = max(qoe_predictions, key=lambda x: x[0])[1]
 
         print(
-            f"Servidor selecionado: {best_server} com "
-            f"QoE: {max(qoe_predictions, key=lambda x: x[0])[0]}"
+            f"Selected server: {best_server} "
+            f"with QoE: {max(qoe_predictions, key=lambda x: x[0])[0]}"
         )
         return best_server
-    
 
-    def get_server_metrics(self, available_servers):
+
+    def get_server_metrics(self, available_svs):
         metrics = []
-        for server in available_servers:
-            server_name = server[0]
+        for sv in available_svs:
+            sv_name = sv[0]
             try:
-                print(f"Getting metrics from {server_name}")
-                
-                cpu_usage    = monitor.get_cpu_usage(server_name)
-                memory_usage = monitor.get_memory_usage(server_name)
+                print(f"Getting metrics from {sv_name}")
+
+                cpu_usage    = monitor.get_cpu_usage(sv_name)
+                memory_usage = monitor.get_memory_usage(sv_name)
 
             except AttributeError:
                 print(
-                    f"Could not get metrics for {server_name}. "
+                    f"Could not get metrics for {sv_name}. "
                     f"Using default values."
                 )
                 cpu_usage = 0
                 memory_usage = 0
             
             metrics.append({
-                'server_name':  server_name,
+                'server_name':  sv_name,
                 'cpu_usage':    cpu_usage,
                 'memory_usage': memory_usage
             })
@@ -165,22 +165,21 @@ class AIServerSelector:
     def update_model(
         self, 
         network_conditions, 
-        selected_server, 
+        selected_sv, 
         performance, 
-        available_servers
+        available_svs
     ):
-        if not selected_server:
-            print("Nenhum servidor selecionado para atualização do modelo.")
+        if not selected_sv:
+            print("No server selected for model update.")
             return
-
         
-        server_metrics = self.get_server_metrics(available_servers)
+        server_metrics = self.get_server_metrics(available_svs)
         selected_metrics = next(
-            (metrics for metrics in server_metrics if metrics['server_name'] == selected_server), 
+            (metrics for metrics in server_metrics if metrics['server_name'] == selected_sv), 
             None
         )
         if selected_metrics is None:
-            print(f"Métricas do servidor {selected_server} não encontradas.")
+            print(f"Metrics for server {selected_sv} not found.")
             return
 
         features = [
