@@ -20,7 +20,7 @@ class AIServerSelector:
         self.update_threshould = update_threshould
         self.model             = None
         self.sample_count      = 0
-        self.sv_mapping    = {}
+        self.mapping    = {}
         self.load_or_train_model()
 
         self.lock = threading.Lock()
@@ -30,7 +30,7 @@ class AIServerSelector:
         try:
             self.model  = joblib.load('server_selection_model.joblib')
             self.scaler = joblib.load('server_selection_scaler.joblib')
-            self.sv_mapping = joblib.load('server_selection_mapping.joblib')
+            self.mapping = joblib.load('server_selection_mapping.joblib')
 
             print("Model loaded successfully.")
 
@@ -63,12 +63,12 @@ class AIServerSelector:
 
             # Train the model with the scaled data
             self.model.fit(scaled_data, dummy_targets)
-            self.sv_mapping = {}
+            self.mapping = {}
 
             # Save the trained model, scaler, and mapping
-            joblib.dump(self.model, 'server_selection_model.joblib')
-            joblib.dump(self.scaler, 'server_selection_scaler.joblib')
-            joblib.dump(self.sv_mapping, 'server_selection_mapping.joblib')
+            joblib.dump(self.model, 'model.joblib')
+            joblib.dump(self.scaler, 'scaler.joblib')
+            joblib.dump(self.mapping, 'mapping.joblib')
 
             print("Model not found. Training a new model.")
 
